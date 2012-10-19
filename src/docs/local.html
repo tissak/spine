@@ -1,0 +1,18 @@
+<!DOCTYPE html>  <html> <head>   <title>local.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ajax.html">                 ajax.coffee               </a>                                           <a class="source" href="list.html">                 list.coffee               </a>                                           <a class="source" href="local.html">                 local.coffee               </a>                                           <a class="source" href="manager.html">                 manager.coffee               </a>                                           <a class="source" href="relation.html">                 relation.coffee               </a>                                           <a class="source" href="route.html">                 route.coffee               </a>                                           <a class="source" href="spine.html">                 spine.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               local.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Spine = </span><span class="nx">@Spine</span> <span class="o">or</span> <span class="nx">require</span><span class="p">(</span><span class="s">&#39;spine&#39;</span><span class="p">)</span>
+
+<span class="nv">Spine.Model.Local =</span>
+  <span class="nv">extended: </span><span class="o">-&gt;</span>
+    <span class="nx">@change</span> <span class="nx">@saveLocal</span>
+    <span class="nx">@fetch</span> <span class="nx">@loadLocal</span>
+
+  <span class="nv">saveLocal: </span><span class="o">-&gt;</span>
+    <span class="nv">result = </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">@</span><span class="p">)</span>
+    <span class="nx">localStorage</span><span class="p">[</span><span class="nx">@className</span><span class="p">]</span> <span class="o">=</span> <span class="nx">result</span>
+
+  <span class="nv">loadLocal: </span><span class="o">-&gt;</span>
+    <span class="nv">result = </span><span class="nx">localStorage</span><span class="p">[</span><span class="nx">@className</span><span class="p">]</span>
+    <span class="nx">@refresh</span><span class="p">(</span><span class="nx">result</span> <span class="o">or</span> <span class="p">[],</span> <span class="nv">clear: </span><span class="kc">true</span><span class="p">)</span>
+
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">Local</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

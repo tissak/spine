@@ -1,0 +1,142 @@
+<!DOCTYPE html>  <html> <head>   <title>relation.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ajax.html">                 ajax.coffee               </a>                                           <a class="source" href="list.html">                 list.coffee               </a>                                           <a class="source" href="local.html">                 local.coffee               </a>                                           <a class="source" href="manager.html">                 manager.coffee               </a>                                           <a class="source" href="relation.html">                 relation.coffee               </a>                                           <a class="source" href="route.html">                 route.coffee               </a>                                           <a class="source" href="spine.html">                 spine.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               relation.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Spine   = </span><span class="nx">@Spine</span> <span class="o">or</span> <span class="nx">require</span><span class="p">(</span><span class="s">&#39;spine&#39;</span><span class="p">)</span>
+<span class="nv">isArray = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">isArray</span>
+<span class="nv">require = </span><span class="nx">@require</span> <span class="o">or</span> <span class="p">(</span><span class="nf">(value) -&gt;</span> <span class="nb">eval</span><span class="p">(</span><span class="nx">value</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nx">Collection</span> <span class="k">extends</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Module</span>
+  <span class="nv">constructor: </span><span class="nf">(options = {}) -&gt;</span>
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">options</span>
+      <span class="nx">@</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+
+  <span class="nv">all: </span><span class="o">-&gt;</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">select</span> <span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">@associated</span><span class="p">(</span><span class="nx">rec</span><span class="p">)</span>
+
+  <span class="nv">first: </span><span class="o">-&gt;</span>
+    <span class="nx">@all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+  <span class="nv">last: </span><span class="o">-&gt;</span>
+    <span class="nv">values = </span><span class="nx">@all</span><span class="p">()</span>
+    <span class="nx">values</span><span class="p">[</span><span class="nx">values</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+  <span class="nv">find: </span><span class="nf">(id) -&gt;</span>
+    <span class="nv">records = </span><span class="nx">@select</span> <span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">rec</span><span class="p">.</span><span class="nx">id</span> <span class="o">+</span> <span class="s">&#39;&#39;</span> <span class="o">is</span> <span class="nx">id</span> <span class="o">+</span> <span class="s">&#39;&#39;</span>
+    <span class="k">throw</span><span class="p">(</span><span class="s">&#39;Unknown record&#39;</span><span class="p">)</span> <span class="nx">unless</span> <span class="nx">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nx">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+  <span class="nv">findAllByAttribute: </span><span class="nf">(name, value) -&gt;</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">select</span> <span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">@associated</span><span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">and</span> <span class="nx">rec</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">is</span> <span class="nx">value</span>
+
+  <span class="nv">findByAttribute: </span><span class="nf">(name, value) -&gt;</span>
+    <span class="nx">@findAllByAttribute</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">value</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+  <span class="nv">select: </span><span class="nf">(cb) -&gt;</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">select</span> <span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">@associated</span><span class="p">(</span><span class="nx">rec</span><span class="p">)</span> <span class="o">and</span> <span class="nx">cb</span><span class="p">(</span><span class="nx">rec</span><span class="p">)</span>
+
+  <span class="nv">refresh: </span><span class="nf">(values) -&gt;</span>
+    <span class="k">delete</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">records</span><span class="p">[</span><span class="nx">record</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span> <span class="k">for</span> <span class="nx">record</span> <span class="k">in</span> <span class="nx">@all</span><span class="p">()</span>
+    <span class="nv">records = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">fromJSON</span><span class="p">(</span><span class="nx">values</span><span class="p">)</span>
+
+    <span class="nv">records = </span><span class="p">[</span><span class="nx">records</span><span class="p">]</span> <span class="nx">unless</span> <span class="nx">isArray</span><span class="p">(</span><span class="nx">records</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="nx">record</span> <span class="k">in</span> <span class="nx">records</span>
+      <span class="nv">record.newRecord = </span><span class="kc">false</span>
+      <span class="nx">record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span>
+      <span class="nx">@model</span><span class="p">.</span><span class="nx">records</span><span class="p">[</span><span class="nx">record</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="nx">record</span>
+
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s">&#39;refresh&#39;</span><span class="p">,</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">cloneArray</span><span class="p">(</span><span class="nx">records</span><span class="p">))</span>
+
+  <span class="nv">create: </span><span class="nf">(record) -&gt;</span>
+    <span class="nx">record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">record</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Private</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">associated: </span><span class="nf">(record) -&gt;</span>
+    <span class="nx">record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">is</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span>
+
+<span class="k">class</span> <span class="nx">Instance</span> <span class="k">extends</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Module</span>
+  <span class="nv">constructor: </span><span class="nf">(options = {}) -&gt;</span>
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">options</span>
+      <span class="nx">@</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+
+  <span class="nv">exists: </span><span class="o">-&gt;</span>
+    <span class="nx">@record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">and</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">exists</span><span class="p">(</span><span class="nx">@record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">])</span>
+
+  <span class="nv">update: </span><span class="nf">(value) -&gt;</span>
+    <span class="nx">unless</span> <span class="nx">value</span> <span class="k">instanceof</span> <span class="nx">@model</span>
+      <span class="nv">value = </span><span class="k">new</span> <span class="nx">@model</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+    <span class="nx">value</span><span class="p">.</span><span class="nx">save</span><span class="p">()</span> <span class="k">if</span> <span class="nx">value</span><span class="p">.</span><span class="nx">isNew</span><span class="p">()</span>
+    <span class="nx">@record</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span> <span class="o">and</span> <span class="nx">value</span><span class="p">.</span><span class="nx">id</span>
+
+<span class="k">class</span> <span class="nx">Singleton</span> <span class="k">extends</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Module</span>
+  <span class="nv">constructor: </span><span class="nf">(options = {}) -&gt;</span>
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">options</span>
+      <span class="nx">@</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+
+  <span class="nv">find: </span><span class="o">-&gt;</span>
+    <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span> <span class="o">and</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">findByAttribute</span><span class="p">(</span><span class="nx">@fkey</span><span class="p">,</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+
+  <span class="nv">update: </span><span class="nf">(value) -&gt;</span>
+    <span class="nx">unless</span> <span class="nx">value</span> <span class="k">instanceof</span> <span class="nx">@model</span>
+      <span class="nv">value = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">fromJSON</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+
+    <span class="nx">value</span><span class="p">[</span><span class="nx">@fkey</span><span class="p">]</span> <span class="o">=</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span>
+    <span class="nx">value</span><span class="p">.</span><span class="nx">save</span><span class="p">()</span>
+
+<span class="nv">singularize = </span><span class="nf">(str) -&gt;</span>
+  <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/s$/</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="nv">underscore = </span><span class="nf">(str) -&gt;</span>
+  <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/::/g</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/([A-Z]+)([A-Z][a-z])/g</span><span class="p">,</span> <span class="s">&#39;$1_$2&#39;</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/([a-z\d])([A-Z])/g</span><span class="p">,</span> <span class="s">&#39;$1_$2&#39;</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/-/g</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span>
+
+<span class="nx">Spine</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span>
+  <span class="nv">hasMany: </span><span class="nf">(name, model, fkey) -&gt;</span>
+    <span class="nx">fkey</span> <span class="o">?=</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">underscore</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">className</span><span class="p">)</span><span class="si">}</span><span class="s">_id&quot;</span>
+
+    <span class="nv">association = </span><span class="nf">(record) -&gt;</span>
+      <span class="nv">model = </span><span class="nx">require</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="k">if</span> <span class="k">typeof</span> <span class="nx">model</span> <span class="o">is</span> <span class="s">&#39;string&#39;</span>
+
+      <span class="k">new</span> <span class="nx">Collection</span><span class="p">(</span>
+        <span class="nv">name: </span><span class="nx">name</span><span class="p">,</span> <span class="nv">model: </span><span class="nx">model</span><span class="p">,</span>
+        <span class="nv">record: </span><span class="nx">record</span><span class="p">,</span> <span class="nv">fkey: </span><span class="nx">fkey</span>
+      <span class="p">)</span>
+
+    <span class="nx">@</span><span class="o">::</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(value) -&gt;</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">refresh</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="k">if</span> <span class="nx">value</span><span class="o">?</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">)</span>
+
+  <span class="nv">belongsTo: </span><span class="nf">(name, model, fkey) -&gt;</span>
+    <span class="nx">fkey</span> <span class="o">?=</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">singularize</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span><span class="si">}</span><span class="s">_id&quot;</span>
+
+    <span class="nv">association = </span><span class="nf">(record) -&gt;</span>
+      <span class="nv">model = </span><span class="nx">require</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="k">if</span> <span class="k">typeof</span> <span class="nx">model</span> <span class="o">is</span> <span class="s">&#39;string&#39;</span>
+
+      <span class="k">new</span> <span class="nx">Instance</span><span class="p">(</span>
+        <span class="nv">name: </span><span class="nx">name</span><span class="p">,</span> <span class="nv">model: </span><span class="nx">model</span><span class="p">,</span>
+        <span class="nv">record: </span><span class="nx">record</span><span class="p">,</span> <span class="nv">fkey: </span><span class="nx">fkey</span>
+      <span class="p">)</span>
+
+    <span class="nx">@</span><span class="o">::</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(value) -&gt;</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">update</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="k">if</span> <span class="nx">value</span><span class="o">?</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">exists</span><span class="p">()</span>
+
+    <span class="nx">@attributes</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">fkey</span><span class="p">)</span>
+
+  <span class="nv">hasOne: </span><span class="nf">(name, model, fkey) -&gt;</span>
+    <span class="nx">fkey</span> <span class="o">?=</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">underscore</span><span class="p">(</span><span class="nx">@className</span><span class="p">)</span><span class="si">}</span><span class="s">_id&quot;</span>
+
+    <span class="nv">association = </span><span class="nf">(record) -&gt;</span>
+      <span class="nv">model = </span><span class="nx">require</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="k">if</span> <span class="k">typeof</span> <span class="nx">model</span> <span class="o">is</span> <span class="s">&#39;string&#39;</span>
+
+      <span class="k">new</span> <span class="nx">Singleton</span><span class="p">(</span>
+        <span class="nv">name: </span><span class="nx">name</span><span class="p">,</span> <span class="nv">model: </span><span class="nx">model</span><span class="p">,</span>
+        <span class="nv">record: </span><span class="nx">record</span><span class="p">,</span> <span class="nv">fkey: </span><span class="nx">fkey</span>
+      <span class="p">)</span>
+
+    <span class="nx">@</span><span class="o">::</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(value) -&gt;</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">update</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="k">if</span> <span class="nx">value</span><span class="o">?</span>
+      <span class="nx">association</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">find</span><span class="p">()</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

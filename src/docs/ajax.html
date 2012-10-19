@@ -1,0 +1,202 @@
+<!DOCTYPE html>  <html> <head>   <title>ajax.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ajax.html">                 ajax.coffee               </a>                                           <a class="source" href="list.html">                 list.coffee               </a>                                           <a class="source" href="local.html">                 local.coffee               </a>                                           <a class="source" href="manager.html">                 manager.coffee               </a>                                           <a class="source" href="relation.html">                 relation.coffee               </a>                                           <a class="source" href="route.html">                 route.coffee               </a>                                           <a class="source" href="spine.html">                 spine.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               ajax.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Spine  = </span><span class="nx">@Spine</span> <span class="o">or</span> <span class="nx">require</span><span class="p">(</span><span class="s">&#39;spine&#39;</span><span class="p">)</span>
+<span class="nv">$      = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">$</span>
+<span class="nv">Model  = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">Model</span>
+<span class="nv">Queue  = </span><span class="nx">$</span><span class="p">({})</span>
+
+<span class="nv">Ajax =</span>
+  <span class="nv">getURL: </span><span class="nf">(object) -&gt;</span>
+    <span class="nx">object</span> <span class="o">and</span> <span class="nx">object</span><span class="p">.</span><span class="nx">url</span><span class="o">?</span><span class="p">()</span> <span class="o">or</span> <span class="nx">object</span><span class="p">.</span><span class="nx">url</span>
+
+  <span class="nv">enabled: </span><span class="kc">true</span>
+
+  <span class="nv">disable: </span><span class="nf">(callback) -&gt;</span>
+    <span class="k">if</span> <span class="nx">@enabled</span>
+      <span class="vi">@enabled = </span><span class="kc">false</span>
+      <span class="k">try</span>
+        <span class="nx">do</span> <span class="nx">callback</span>
+      <span class="k">catch</span> <span class="nx">e</span>
+        <span class="k">throw</span> <span class="nx">e</span>
+      <span class="k">finally</span>
+        <span class="vi">@enabled = </span><span class="kc">true</span>
+    <span class="k">else</span>
+      <span class="nx">do</span> <span class="nx">callback</span>
+
+  <span class="nv">queue: </span><span class="nf">(request) -&gt;</span>
+    <span class="k">if</span> <span class="nx">request</span> <span class="k">then</span> <span class="nx">Queue</span><span class="p">.</span><span class="nx">queue</span><span class="p">(</span><span class="nx">request</span><span class="p">)</span> <span class="k">else</span> <span class="nx">Queue</span><span class="p">.</span><span class="nx">queue</span><span class="p">()</span>
+
+  <span class="nv">clearQueue: </span><span class="o">-&gt;</span>
+    <span class="nx">@queue</span> <span class="p">[]</span>
+
+<span class="k">class</span> <span class="nx">Base</span>
+  <span class="nv">defaults:</span>
+    <span class="nv">contentType: </span><span class="s">&#39;application/json&#39;</span>
+    <span class="nv">dataType: </span><span class="s">&#39;json&#39;</span>
+    <span class="nv">processData: </span><span class="kc">false</span>
+    <span class="nv">headers: </span><span class="p">{</span><span class="s">&#39;X-Requested-With&#39;</span><span class="o">:</span> <span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">}</span>
+
+  <span class="nv">queue: </span><span class="nx">Ajax</span><span class="p">.</span><span class="nx">queue</span>
+
+  <span class="nv">ajax: </span><span class="nf">(params, defaults) -&gt;</span>
+    <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span> <span class="nx">@ajaxSettings</span><span class="p">(</span><span class="nx">params</span><span class="p">,</span> <span class="nx">defaults</span><span class="p">)</span>
+
+  <span class="nv">ajaxQueue: </span><span class="nf">(params, defaults) -&gt;</span>
+    <span class="nv">jqXHR    = </span><span class="kc">null</span>
+    <span class="nv">deferred = </span><span class="nx">$</span><span class="p">.</span><span class="nx">Deferred</span><span class="p">()</span>
+
+    <span class="nv">promise  = </span><span class="nx">deferred</span><span class="p">.</span><span class="nx">promise</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nx">promise</span> <span class="nx">unless</span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">enabled</span>
+
+    <span class="nv">settings = </span><span class="nx">@ajaxSettings</span><span class="p">(</span><span class="nx">params</span><span class="p">,</span> <span class="nx">defaults</span><span class="p">)</span>
+
+    <span class="nv">request = </span><span class="nf">(next) -&gt;</span>
+      <span class="nv">jqXHR = </span><span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">(</span><span class="nx">settings</span><span class="p">)</span>
+                <span class="p">.</span><span class="nx">done</span><span class="p">(</span><span class="nx">deferred</span><span class="p">.</span><span class="nx">resolve</span><span class="p">)</span>
+                <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">deferred</span><span class="p">.</span><span class="nx">reject</span><span class="p">)</span>
+                <span class="p">.</span><span class="k">then</span><span class="p">(</span><span class="nx">next</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span>
+
+    <span class="nv">promise.abort = </span><span class="nf">(statusText) -&gt;</span>
+      <span class="k">return</span> <span class="nx">jqXHR</span><span class="p">.</span><span class="nx">abort</span><span class="p">(</span><span class="nx">statusText</span><span class="p">)</span> <span class="k">if</span> <span class="nx">jqXHR</span>
+      <span class="nv">index = </span><span class="nx">$</span><span class="p">.</span><span class="nx">inArray</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">@queue</span><span class="p">())</span>
+      <span class="nx">@queue</span><span class="p">().</span><span class="nx">splice</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nx">index</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
+
+      <span class="nx">deferred</span><span class="p">.</span><span class="nx">rejectWith</span><span class="p">(</span>
+        <span class="nx">settings</span><span class="p">.</span><span class="nx">context</span> <span class="o">or</span> <span class="nx">settings</span><span class="p">,</span>
+        <span class="p">[</span><span class="nx">promise</span><span class="p">,</span> <span class="nx">statusText</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
+      <span class="p">)</span>
+      <span class="nx">promise</span>
+
+    <span class="nx">@queue</span> <span class="nx">request</span>
+    <span class="nx">promise</span>
+
+  <span class="nv">ajaxSettings: </span><span class="nf">(params, defaults) -&gt;</span>
+    <span class="nx">$</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">@defaults</span><span class="p">,</span> <span class="nx">defaults</span><span class="p">,</span> <span class="nx">params</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nx">Collection</span> <span class="k">extends</span> <span class="nx">Base</span>
+  <span class="nv">constructor: </span><span class="nf">(@model) -&gt;</span>
+
+  <span class="nv">find: </span><span class="nf">(id, params) -&gt;</span>
+    <span class="nv">record = </span><span class="k">new</span> <span class="nx">@model</span><span class="p">(</span><span class="nv">id: </span><span class="nx">id</span><span class="p">)</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;GET&#39;</span><span class="p">,</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">record</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordsResponse</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">)</span>
+
+  <span class="nv">all: </span><span class="nf">(params) -&gt;</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;GET&#39;</span><span class="p">,</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@model</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordsResponse</span><span class="p">)</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">)</span>
+
+  <span class="nv">fetch: </span><span class="nf">(params = {}, options = {}) -&gt;</span>
+    <span class="k">if</span> <span class="nv">id = </span><span class="nx">params</span><span class="p">.</span><span class="nx">id</span>
+      <span class="k">delete</span> <span class="nx">params</span><span class="p">.</span><span class="nx">id</span>
+      <span class="nx">@find</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">params</span><span class="p">).</span><span class="nx">done</span> <span class="p">(</span><span class="nx">record</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">refresh</span><span class="p">(</span><span class="nx">record</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span>
+    <span class="k">else</span>
+      <span class="nx">@all</span><span class="p">(</span><span class="nx">params</span><span class="p">).</span><span class="nx">done</span> <span class="p">(</span><span class="nx">records</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">refresh</span><span class="p">(</span><span class="nx">records</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Private</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">recordsResponse: </span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s">&#39;ajaxSuccess&#39;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">)</span>
+
+  <span class="nv">failResponse: </span><span class="p">(</span><span class="nx">xhr</span><span class="p">,</span> <span class="nx">statusText</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="nx">@model</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s">&#39;ajaxError&#39;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">,</span> <span class="nx">statusText</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nx">Singleton</span> <span class="k">extends</span> <span class="nx">Base</span>
+  <span class="nv">constructor: </span><span class="nf">(@record) -&gt;</span>
+    <span class="vi">@model = </span><span class="nx">@record</span><span class="p">.</span><span class="nx">constructor</span>
+
+  <span class="nv">reload: </span><span class="nf">(params, options) -&gt;</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;GET&#39;</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+
+  <span class="nv">create: </span><span class="nf">(params, options) -&gt;</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;POST&#39;</span>
+      <span class="nv">data: </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@model</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+
+  <span class="nv">update: </span><span class="nf">(params, options) -&gt;</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;PUT&#39;</span>
+      <span class="nv">data: </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+
+  <span class="nv">destroy: </span><span class="nf">(params, options) -&gt;</span>
+    <span class="nx">@ajaxQueue</span><span class="p">(</span>
+      <span class="nx">params</span><span class="p">,</span>
+      <span class="nv">type: </span><span class="s">&#39;DELETE&#39;</span>
+      <span class="nv">url: </span> <span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+    <span class="p">).</span><span class="nx">done</span><span class="p">(</span><span class="nx">@recordResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span>
+     <span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="nx">@failResponse</span><span class="p">(</span><span class="nx">options</span><span class="p">))</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Private</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">recordResponse: </span><span class="p">(</span><span class="nv">options = </span><span class="p">{})</span> <span class="o">=&gt;</span>
+    <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">isBlank</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+        <span class="nv">data = </span><span class="kc">false</span>
+      <span class="k">else</span>
+        <span class="nv">data = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">fromJSON</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+
+      <span class="nx">Ajax</span><span class="p">.</span><span class="nx">disable</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>ID change, need to do some shifting</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">id</span> <span class="o">and</span> <span class="nx">@record</span><span class="p">.</span><span class="nx">id</span> <span class="o">isnt</span> <span class="nx">data</span><span class="p">.</span><span class="nx">id</span>
+            <span class="nx">@record</span><span class="p">.</span><span class="nx">changeID</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Update with latest data</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="nx">@record</span><span class="p">.</span><span class="nx">updateAttributes</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">attributes</span><span class="p">())</span>
+
+      <span class="nx">@record</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s">&#39;ajaxSuccess&#39;</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">)</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">success</span><span class="o">?</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span> <span class="c1"># Deprecated</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">done</span><span class="o">?</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span>
+
+  <span class="nv">failResponse: </span><span class="p">(</span><span class="nv">options = </span><span class="p">{})</span> <span class="o">=&gt;</span>
+    <span class="p">(</span><span class="nx">xhr</span><span class="p">,</span> <span class="nx">statusText</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">@record</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s">&#39;ajaxError&#39;</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">,</span> <span class="nx">statusText</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">error</span><span class="o">?</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span> <span class="c1"># Deprecated</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">fail</span><span class="o">?</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">@record</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Ajax endpoint</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Model.host = </span><span class="s">&#39;&#39;</span>
+
+<span class="nv">Include =</span>
+  <span class="nv">ajax: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Singleton</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+
+  <span class="nv">url: </span><span class="nf">(args...) -&gt;</span>
+    <span class="nv">url = </span><span class="nx">Ajax</span><span class="p">.</span><span class="nx">getURL</span><span class="p">(</span><span class="nx">@constructor</span><span class="p">)</span>
+    <span class="nx">url</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span> <span class="nx">unless</span> <span class="nx">url</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">url</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">is</span> <span class="s">&#39;/&#39;</span>
+    <span class="nx">url</span> <span class="o">+=</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">@id</span><span class="p">)</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+
+<span class="nv">Extend =</span>
+  <span class="nv">ajax: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Collection</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+
+  <span class="nv">url: </span><span class="nf">(args...) -&gt;</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">@className</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;s&#39;</span><span class="p">)</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">Model</span><span class="p">.</span><span class="nx">host</span><span class="p">)</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+
+<span class="nv">Model.Ajax =</span>
+  <span class="nv">extended: </span><span class="o">-&gt;</span>
+    <span class="nx">@fetch</span> <span class="nx">@ajaxFetch</span>
+    <span class="nx">@change</span> <span class="nx">@ajaxChange</span>
+
+    <span class="nx">@extend</span> <span class="nx">Extend</span>
+    <span class="nx">@include</span> <span class="nx">Include</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Private</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">ajaxFetch: </span><span class="o">-&gt;</span>
+    <span class="nx">@ajax</span><span class="p">().</span><span class="nx">fetch</span><span class="p">(</span><span class="nx">arguments</span><span class="p">...)</span>
+
+  <span class="nv">ajaxChange: </span><span class="nf">(record, type, options = {}) -&gt;</span>
+    <span class="k">return</span> <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">ajax</span> <span class="o">is</span> <span class="kc">false</span>
+    <span class="nx">record</span><span class="p">.</span><span class="nx">ajax</span><span class="p">()[</span><span class="nx">type</span><span class="p">](</span><span class="nx">options</span><span class="p">.</span><span class="nx">ajax</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span>
+
+<span class="nv">Model.Ajax.Methods =</span>
+  <span class="nv">extended: </span><span class="o">-&gt;</span>
+    <span class="nx">@extend</span> <span class="nx">Extend</span>
+    <span class="nx">@include</span> <span class="nx">Include</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Globals</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Ajax.defaults   = </span><span class="nx">Base</span><span class="o">::</span><span class="nx">defaults</span>
+<span class="nv">Spine.Ajax      = </span><span class="nx">Ajax</span>
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Ajax</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

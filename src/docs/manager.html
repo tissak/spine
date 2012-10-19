@@ -1,0 +1,81 @@
+<!DOCTYPE html>  <html> <head>   <title>manager.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ajax.html">                 ajax.coffee               </a>                                           <a class="source" href="list.html">                 list.coffee               </a>                                           <a class="source" href="local.html">                 local.coffee               </a>                                           <a class="source" href="manager.html">                 manager.coffee               </a>                                           <a class="source" href="relation.html">                 relation.coffee               </a>                                           <a class="source" href="route.html">                 route.coffee               </a>                                           <a class="source" href="spine.html">                 spine.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               manager.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Spine  = </span><span class="nx">@Spine</span> <span class="o">or</span> <span class="nx">require</span><span class="p">(</span><span class="s">&#39;spine&#39;</span><span class="p">)</span>
+<span class="nv">$      = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">$</span>
+
+<span class="k">class</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Manager</span> <span class="k">extends</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Module</span>
+  <span class="nx">@include</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Events</span>
+
+  <span class="nv">constructor: </span><span class="o">-&gt;</span>
+    <span class="vi">@controllers = </span><span class="p">[]</span>
+    <span class="nx">@bind</span> <span class="s">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@change</span>
+    <span class="nx">@add</span><span class="p">(</span><span class="nx">arguments</span><span class="p">...)</span>
+
+  <span class="nv">add: </span><span class="nf">(controllers...) -&gt;</span>
+    <span class="nx">@addOne</span><span class="p">(</span><span class="nx">cont</span><span class="p">)</span> <span class="k">for</span> <span class="nx">cont</span> <span class="k">in</span> <span class="nx">controllers</span>
+
+  <span class="nv">addOne: </span><span class="nf">(controller) -&gt;</span>
+    <span class="nx">controller</span><span class="p">.</span><span class="nx">bind</span> <span class="s">&#39;active&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">args</span><span class="p">...)</span> <span class="o">=&gt;</span>
+      <span class="nx">@trigger</span><span class="p">(</span><span class="s">&#39;change&#39;</span><span class="p">,</span> <span class="nx">controller</span><span class="p">,</span> <span class="nx">args</span><span class="p">...)</span>
+    <span class="nx">controller</span><span class="p">.</span><span class="nx">bind</span> <span class="s">&#39;release&#39;</span><span class="p">,</span> <span class="o">=&gt;</span>
+      <span class="nx">@controllers</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">@controllers</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">controller</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nx">@controllers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">controller</span><span class="p">)</span>
+
+  <span class="nv">deactivate: </span><span class="o">-&gt;</span>
+    <span class="nx">@trigger</span><span class="p">(</span><span class="s">&#39;change&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">...)</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Private</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">change: </span><span class="nf">(current, args...) -&gt;</span>
+    <span class="k">for</span> <span class="nx">cont</span> <span class="k">in</span> <span class="nx">@controllers</span>
+      <span class="k">if</span> <span class="nx">cont</span> <span class="o">is</span> <span class="nx">current</span>
+        <span class="nx">cont</span><span class="p">.</span><span class="nx">activate</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span>
+      <span class="k">else</span>
+        <span class="nx">cont</span><span class="p">.</span><span class="nx">deactivate</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span>
+
+<span class="nx">Spine</span><span class="p">.</span><span class="nx">Controller</span><span class="p">.</span><span class="nx">include</span>
+  <span class="nv">active: </span><span class="nf">(args...) -&gt;</span>
+    <span class="k">if</span> <span class="k">typeof</span> <span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">is</span> <span class="s">&#39;function&#39;</span>
+      <span class="nx">@bind</span><span class="p">(</span><span class="s">&#39;active&#39;</span><span class="p">,</span> <span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span>
+      <span class="nx">args</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="s">&#39;active&#39;</span><span class="p">)</span>
+      <span class="nx">@trigger</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span>
+    <span class="nx">@</span>
+
+  <span class="nv">isActive: </span><span class="o">-&gt;</span>
+    <span class="nx">@el</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="s">&#39;active&#39;</span><span class="p">)</span>
+
+  <span class="nv">activate: </span><span class="o">-&gt;</span>
+    <span class="nx">@el</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s">&#39;active&#39;</span><span class="p">)</span>
+    <span class="nx">@</span>
+
+  <span class="nv">deactivate: </span><span class="o">-&gt;</span>
+    <span class="nx">@el</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="s">&#39;active&#39;</span><span class="p">)</span>
+    <span class="nx">@</span>
+
+<span class="k">class</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Stack</span> <span class="k">extends</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Controller</span>
+  <span class="nv">controllers: </span><span class="p">{}</span>
+  <span class="nv">routes: </span><span class="p">{}</span>
+
+  <span class="nv">className: </span><span class="s">&#39;spine stack&#39;</span>
+
+  <span class="nv">constructor: </span><span class="o">-&gt;</span>
+    <span class="k">super</span>
+
+    <span class="vi">@manager = </span><span class="k">new</span> <span class="nx">Spine</span><span class="p">.</span><span class="nx">Manager</span>
+
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">@controllers</span>
+      <span class="nx">@</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">value</span><span class="p">(</span><span class="nv">stack: </span><span class="nx">@</span><span class="p">)</span>
+      <span class="nx">@add</span><span class="p">(</span><span class="nx">@</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">@routes</span>
+      <span class="nx">do</span> <span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nv">callback = </span><span class="nx">value</span> <span class="k">if</span> <span class="k">typeof</span> <span class="nx">value</span> <span class="o">is</span> <span class="s">&#39;function&#39;</span>
+        <span class="nx">callback</span> <span class="o">or=</span> <span class="o">=&gt;</span> <span class="nx">@</span><span class="p">[</span><span class="nx">value</span><span class="p">].</span><span class="nx">active</span><span class="p">(</span><span class="nx">arguments</span><span class="p">...)</span>
+        <span class="nx">@route</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span>
+
+    <span class="nx">@</span><span class="p">[</span><span class="nx">@default</span><span class="p">].</span><span class="nx">active</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@default</span>
+
+  <span class="nv">add: </span><span class="nf">(controller) -&gt;</span>
+    <span class="nx">@manager</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">controller</span><span class="p">)</span>
+    <span class="nx">@append</span><span class="p">(</span><span class="nx">controller</span><span class="p">)</span>
+
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">Manager</span>
+<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports.Stack = </span><span class="nx">Spine</span><span class="p">.</span><span class="nx">Stack</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
